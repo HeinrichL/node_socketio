@@ -19,14 +19,13 @@ io.on("connection", (socket) => {
         console.log("User disconnected");
     });
 
-    // socket.emit("newEmail", {haha: "jaslkdfj"});
-
-    // socket.on("createEmail", (email) => {
-    //     console.log("new mail arrived to server:", JSON.stringify(email));
-    // });
-
     socket.on("createMessage", (message) => {
         console.log(message.createdAt+ " ["+ message.from+ "]:", message.text);
+        io.emit("newMessage", {
+            from: message.from,
+            text: message.text,
+            createdAt: new Date().getTime()
+        });
     })
 
     socket.emit("newMessage", {
