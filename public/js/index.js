@@ -23,3 +23,10 @@ socket.on("userJoined", function (mess) {
 var printMessage = function (mess) {
     console.log(mess.createdAt + " [" + mess.from + "]:", mess.text);
 };
+
+socket.emit("createMessage", {
+    from: "asd",
+    text: "hi"
+}, function(data){
+    console.log("acked", data);
+});
