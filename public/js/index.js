@@ -10,6 +10,10 @@ socket.on("disconnect", function () {
 
 socket.on("newMessage", function (message) {
     printMessage(message);
+    var li = $("<li></li>");
+    li.text(`${message.from}: ${message.text}`);
+
+    $("#messages").append(li);
 });
 
 socket.on("welcomeMessage", function (mess) {
@@ -24,9 +28,13 @@ var printMessage = function (mess) {
     console.log(mess.createdAt + " [" + mess.from + "]:", mess.text);
 };
 
-socket.emit("createMessage", {
-    from: "asd",
-    text: "hi"
-}, function(data){
-    console.log("acked", data);
+$("#message-form").on("submit", function (e) {
+    e.preventDefault();
+
+    socket.emit("createMessage", {
+        from: "user",
+        text: $("[name=message]").val()
+    }, function () {
+
+    });
 });
