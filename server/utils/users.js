@@ -4,6 +4,8 @@
     room: "Cool Room"
 }]
 
+var _ = require("lodash");
+
 // addUser(id, name, room)
 // removeUser(id)
 // getUser(id)
@@ -23,8 +25,9 @@ class Users {
     removeUser(id) {
         var user = this.getUser(id);
         if (user) {
-            this.users = this.users.filter(x => !(x.id === id));
+            _.remove(this.users, x => x.id === id);
         }
+
         return user;
     }
 
@@ -35,6 +38,16 @@ class Users {
     getUserList(room) {
         return this.users.filter(x => x.room === room)
             .map(x => x.name);
+    }
+
+    nameTaken(name, room) {
+        return _.filter(this.users, x => x.name === name && x.room === room)
+            .length > 0;
+    }
+
+    getAllRooms() {
+        // use of union efficient?
+        return _.union(_.map(this.users, x => x.room), []);
     }
 }
 

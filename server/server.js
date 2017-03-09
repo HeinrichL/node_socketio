@@ -21,43 +21,50 @@ io.on("connection", (socket) => {
     console.log("New user connected");
 
     socket.on("join", (params, callback) => {
-        if (!isRealString(params.name) || !isRealString(params.room)) {
+
+        var room = isRealString(params.room) ?
+            params.room.toLowerCase() : params.selected_room.toLowerCase();
+
+        if (!isRealString(params.name) || !isRealString(room)) {
             return callback("Name and room name are required");
         }
 
-        socket.join(params.room);
-        users.removeUser(socket.id);
-        users.addUser(socket.id, params.name, params.room);
+        if (users.nameTaken(params.name, room)) {
+            return callback("Username already taken. Please choose another name");
+        }
 
-        io.to(params.room).emit("updateUserList", users.getUserList(params.room));
+        socket.join(room);
+        users.removeUser(socket.id);
+        users.addUser(socket.id, params.name, room);
+
+        io.to(room).emit("updateUserList", users.getUserList(room));
         socket.emit("newMessage", generateMessage("Admin",
             "Welcome to the chat app"));
-        socket.broadcast.to(params.room).emit("newMessage", generateMessage("Admin",
+        socket.broadcast.to(room).emit("newMessage", generateMessage("Admin",
             params.name + " has joined the room"));
-        
 
         callback();
     });
 
     socket.on("createMessage", (message, callback) => {
-            var user = users.getUser(socket.id);
+        var user = users.getUser(socket.id);
 
-            if (user && isRealString(message.text)) {
-                io.to(user.room).emit("newMessage", generateMessage(user.name, message.text));
-                callback("This is from the server");
-            }
+        if (user && isRealString(message.text)) {
+            io.to(user.room).emit("newMessage", generateMessage(user.name, message.text));
+            callback("This is from the server");
+        }
 
-        });
-        socket.on("createLocationMessage", (coords) => {
+    });
+    socket.on("createLocationMessage", (coords) => {
 
-            var user = users.getUser(socket.id);
+        var user = users.getUser(socket.id);
 
-            if (user) {
-                io.to(user.room).emit("newLocationMessage", generateLocationMessage("Admin",
+        if (user) {
+            io.to(user.room).emit("newLocationMessage", generateLocationMessage("Admin",
                 coords.latitude, coords.longitude));
-            }
-            
-        });
+        }
+
+    });
 
     socket.on("disconnect", () => {
         var user = users.removeUser(socket.id);
@@ -68,6 +75,10 @@ io.on("connection", (socket) => {
         }
         console.log("User disconnected");
     });
+
+    socket.on("getRooms", () => {
+        socket.emit("allRooms", users.getAllRooms());
+    })
 
 });
 
